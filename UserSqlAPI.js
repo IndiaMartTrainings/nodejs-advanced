@@ -1,5 +1,6 @@
 const express = require("express")
 const sql = require("mssql")
+const cors = require("cors")
 const app = express()
 const router = express.Router()
 
@@ -13,14 +14,7 @@ const dbConfig = {
       }
 }
 
-sql.connect(dbConfig, (err) => {
-    if(err){
-        throw err
-    } else {
-        console.log(`Connected to SQL server Sucessfully`)
-    }
-})
-
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 
@@ -29,63 +23,106 @@ router.get("/", (req, res) => {
 })
 
 router.get("/users", (req, res)=>{
-    const request = new sql.Request()
-    const selectQuery = "SELECT id, name, email , city from Users"
-    request.query(selectQuery, (err, data) =>{
+    sql.connect(dbConfig, (err) => {
         if(err){
-            throw err
+            console.log(err)
+        } else {
+            console.log(`Connected to SQL server Sucessfully`)
+            const request = new sql.Request()
+            const selectQuery = "SELECT id, name, email , city from Users Order by id Asc"
+            request.query(selectQuery, (err, data) =>{
+                if(err){
+                    throw err
+                }
+                res.json(data.recordset)
+            })
         }
-        res.json(data.recordset)
     })
+
 })
 
 router.get("/users/:id", (req, res)=>{
     const userId = req.params.id
-    const request = new sql.Request()
-    const selectByIDQuery = `SELECT id, name, email , city from Users WHERE id=${userId}`
-    request.query(selectByIDQuery, (err, data) =>{
+    sql.connect(dbConfig, (err) => {
         if(err){
-            throw err
+            console.log(err)
+        } else {
+            console.log(`Connected to SQL server Sucessfully`)
+
+            const request = new sql.Request()
+            const selectByIDQuery = `SELECT id, name, email , city from Users WHERE id=${userId}`
+            request.query(selectByIDQuery, (err, data) =>{
+                if(err){
+                    throw err
+                }
+                res.json(data.recordset)
+            })
         }
-        res.json(data.recordset)
     })
+
 })
 
 router.post("/users", (req, res) => {
     const {name, email, city} = req.body
-    const request = new sql.Request()
-    const insertQuery = `INSERT INTO Users (name, email, city) VALUES ('${name}', '${email}', '${city}')`
-    request.query(insertQuery, (err, data)=>{
+    console.log(req.body)
+    sql.connect(dbConfig, (err) => {
         if(err){
-            throw err
+            console.log(err)
+        } else {
+            console.log(`Connected to SQL server Sucessfully`)
+
+            const request = new sql.Request()
+            const insertQuery = `INSERT INTO Users (name, email, city) VALUES ('${name}', '${email}', '${city}')`
+            request.query(insertQuery, (err, data)=>{
+                if(err){
+                    throw err
+                }
+                res.json(data)
+            })
         }
-        res.json(data)
-    })  
+    })
+
+  
 })
 
 router.put("/users/:id", (req, res) => {
     const userId = req.params.id
     const {name, email, city} = req.body 
-    const request = new sql.Request()
-    const updateQuery = `UPDATE Users SET name = '${name}', email='${email}', city='${city}' WHERE ID=${userId}`
-    request.query(updateQuery, (err, data)=>{
+    sql.connect(dbConfig, (err) => {
         if(err){
-            throw err
+            console.log(err)
+        } else {
+
+            const request = new sql.Request()
+            const updateQuery = `UPDATE Users SET name = '${name}', email='${email}', city='${city}' WHERE ID=${userId}`
+            request.query(updateQuery, (err, data)=>{
+                if(err){
+                    throw err
+                }
+                res.json(data)
+            })
         }
-        res.json(data)
     })
+
 })
 
 router.delete("/users/:id", (req, res)=>{
     const userId = req.params.id
-    const request = new sql.Request()
-    const deleteQuery = `DELETE FROM Users WHERE ID=${userId}`
-    request.query(deleteQuery, (err, data)=>{
+    sql.connect(dbConfig, (err) => {
         if(err){
-            throw err
+            console.log(err)
+        } else {
+            const request = new sql.Request()
+            const deleteQuery = `DELETE FROM Users WHERE ID=${userId}`
+            request.query(deleteQuery, (err, data)=>{
+                if(err){
+                    throw err
+                }
+                res.json(data)
+            })
         }
-        res.json(data)
     })
+
 })
 
 
